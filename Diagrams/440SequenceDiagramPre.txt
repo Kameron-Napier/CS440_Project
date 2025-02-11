@@ -1,0 +1,10 @@
+title Scheduler Application
+User->LoginInterface: User Logs in to access their schedule
+alt User Receives Schedule Invite
+User->LoginInterface: User creates an account/logs in
+end
+User->ScheduleSetUpInterface: User sets schedule boundaries
+ScheduleSetUpInterface->CalendarInterface:ScheduleInterface determines the layout\ of the Calendar based off set time/date boundaries
+ User->CalendarInterface: User can set availability
+ CalendarInterface->Database: Database stores users data in CalendarTable
+ Database-->CalendarInterface: Database confirms availibity

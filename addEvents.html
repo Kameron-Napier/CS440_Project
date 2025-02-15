@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const events = [];
+            const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            document.getElementById("eventForm").addEventListener("submit", function (e) {
+                e.preventDefault();
+                
+                const eventName = document.getElementById("event_name").value;
+                const eventDay = document.getElementById("event_day").value;
+                const eventStartTime = document.getElementById("event_start_time").value;
+                const eventEndTime = document.getElementById("event_end_time").value;
+                
+                function formatTime(time) {
+                    let [hour, minute] = time.split(":");
+                    let period = "AM";
+                    hour = parseInt(hour);
+                    if (hour >= 12) {
+                        period = "PM";
+                        if (hour > 12) hour -= 12;
+                    } else if (hour === 0) {
+                        hour = 12;
+                    }
+                    return `${hour}:${minute} ${period}`;
+                }
+                
+                for (let event of events) {
+                    if (event.day === eventDay && 
+                        ((eventStartTime >= event.startTime && eventStartTime < event.endTime) || 
+                        (eventEndTime > event.startTime && eventEndTime <= event.endTime) || 
+                        (eventStartTime <= event.startTime && eventEndTime >= event.endTime))) {
+                        alert("Time conflict! This event overlaps with an existing event.");
+                        return;
+                    }
+                }
+                
+                const formData = new FormData(document.getElementById("eventForm"));
+                fetch("server.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    events.push({
+                        name: eventName,
+                        day: eventDay,
+                        startTime: eventStartTime,
+                        endTime: eventEndTime
+                    });
+                    
+                    events.sort((a, b) => {
+                        return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day) || a.startTime.localeCompare(b.startTime);
+                    });
+                    
+                    const table = document.getElementById("eventsTableBody");
+                    table.innerHTML = "";
+                    events.forEach(event => {
+                        const newRow = table.insertRow();
+                        newRow.innerHTML = `<td>${event.name}</td><td>${event.day}</td><td>${formatTime(event.startTime)}</td><td>${formatTime(event.endTime)}</td>`;
+                    });
+                    
+                    document.getElementById("eventForm").reset();
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Event</h2>
+        <form id="eventForm" action="server.php" method="POST">
+            <label for="event_name">Event Name:</label>
+            <input type="text" id="event_name" name="event_name" required>
+            
+            <label for="event_day">Day:</label>
+            <select id="event_day" name="event_day" required>
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+            </select>
+            
+            <label for="event_start_time">Start Time:</label>
+            <input type="time" id="event_start_time" name="event_start_time" required>
+            
+            <label for="event_end_time">End Time:</label>
+            <input type="time" id="event_end_time" name="event_end_time" required>
+            
+            <button type="submit">Add Event</button>
+        </form>
+        
+        <h2>Events Schedule</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Day</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

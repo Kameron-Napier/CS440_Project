@@ -6,18 +6,22 @@
     <title>Add Event</title>
     <link rel="stylesheet" href="styles.css">
     <script>
+        // make array
         document.addEventListener("DOMContentLoaded", function () {
             const events = [];
             const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+            // event listener 
             document.getElementById("eventForm").addEventListener("submit", function (e) {
                 e.preventDefault();
-                
+
+                // get values
                 const eventName = document.getElementById("event_name").value;
                 const eventDay = document.getElementById("event_day").value;
                 const eventStartTime = document.getElementById("event_start_time").value;
                 const eventEndTime = document.getElementById("event_end_time").value;
-                
+
+                // make sure time is in 12 hour format
                 function formatTime(time) {
                     let [hour, minute] = time.split(":");
                     let period = "AM";
@@ -30,7 +34,8 @@
                     }
                     return `${hour}:${minute} ${period}`;
                 }
-                
+
+                // check for time conflicts of events
                 for (let event of events) {
                     if (event.day === eventDay && 
                         ((eventStartTime >= event.startTime && eventStartTime < event.endTime) || 
@@ -40,7 +45,8 @@
                         return;
                     }
                 }
-                
+
+                // prepare form for more submissions
                 const formData = new FormData(document.getElementById("eventForm"));
                 fetch("server.php", {
                     method: "POST",
@@ -49,24 +55,28 @@
                 .then(response => response.text())
                 .then(data => {
                     console.log(data);
+                    // add new event to the array
                     events.push({
                         name: eventName,
                         day: eventDay,
                         startTime: eventStartTime,
                         endTime: eventEndTime
                     });
-                    
+
+                    // sort the events by day and time
                     events.sort((a, b) => {
                         return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day) || a.startTime.localeCompare(b.startTime);
                     });
-                    
+
+                    // update events table
                     const table = document.getElementById("eventsTableBody");
                     table.innerHTML = "";
                     events.forEach(event => {
                         const newRow = table.insertRow();
                         newRow.innerHTML = `<td>${event.name}</td><td>${event.day}</td><td>${formatTime(event.startTime)}</td><td>${formatTime(event.endTime)}</td>`;
                     });
-                    
+
+                    // reset the form after submission
                     document.getElementById("eventForm").reset();
                 })
                 .catch(error => console.error("Error:", error));

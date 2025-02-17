@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Event</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="addEvents.css">
     <script>
         // make array
         document.addEventListener("DOMContentLoaded", function () {
@@ -71,11 +71,38 @@
                     // update events table
                     const table = document.getElementById("eventsTableBody");
                     table.innerHTML = "";
+                    
+                    let day = events[0].day;
+                    let prevDay = day;
+                    let index = 0;
+                    
+                    let rows = [];
+                    rows[0] = table.insertRow();
+                    rows[0].innerHTML = (`<td></td>`) * dayOrder.indexOf(day);
+
                     events.forEach(event => {
+                        // increment day of week OR index of current event for the day of week
+                        if (event.day == day) {
+                            index += 1;
+                        }
+                        else {
+                            prevDay = day;
+                            day = event.day;
+                            index = 0;
+                        }
+
+                        // check that there is a row for current index
+                            // if not, make one and add blank cells for each day before the current one
+                            // else: use the row that exists (: add blank cells for each cell between previous day and current day
+                        // then add the stuff for the current day:
+                            // row[index].innerHTML = row[index].innerHTML + `new stuff`
+                            // "new stuff" is <table><tr>${event.name}</tr><tr>${event.startTime}</tr><tr>${event.endTime}</tr></table>
+                        
+                        // old code (just here for reference)
                         const newRow = table.insertRow();
                         newRow.innerHTML = `<td>${event.name}</td><td>${event.day}</td><td>${formatTime(event.startTime)}</td><td>${formatTime(event.endTime)}</td>`;
                     });
-
+                    
                     // reset the form after submission
                     document.getElementById("eventForm").reset();
                 })
@@ -115,10 +142,13 @@
         <table border="1">
             <thead>
                 <tr>
-                    <th>Event Name</th>
-                    <th>Day</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
+                    <th>Sunday</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Saturday</th>
                 </tr>
             </thead>
             <tbody id="eventsTableBody">

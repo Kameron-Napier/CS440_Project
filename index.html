@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+    <link rel="stylesheet" href="addEvents.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const username = localStorage.getItem("loggedInUser");
+            if (username) {
+                document.getElementById("userDisplay").innerText = username;
+            }
+
+            const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            // Fetch events from the backend and render the table
+            async function fetchAndRenderEvents() {
+                try {
+                    const response = await fetch('http://localhost:3000/events');
+                    const events = await response.json();
+
+                    const table = document.getElementById("eventsTableBody");
+                    table.innerHTML = "";
+
+                    // Group events by day
+                    const eventsByDay = {};
+                    dayOrder.forEach(day => {
+                        eventsByDay[day] = [];
+                    });
+
+                    events.forEach(event => {
+                        eventsByDay[event.event_day].push(event);
+                    });
+
+                    // Render events in the table
+                    let maxRows = 0;
+                    Object.values(eventsByDay).forEach(dayEvents => {
+                        if (dayEvents.length > maxRows) maxRows = dayEvents.length;
+                    });
+
+                    for (let i = 0; i < maxRows; i++) {
+                        const row = table.insertRow();
+                        dayOrder.forEach(day => {
+                            const cell = row.insertCell();
+                            if (eventsByDay[day][i]) {
+                                const event = eventsByDay[day][i];
+                                cell.innerHTML = `
+                                    <strong>${event.event_name}</strong><br>
+                                    ${formatTime(event.event_start_time)} - ${formatTime(event.event_end_time)}
+                                `;
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching events:', error);
+                }
+            }
+
+            // Format time in 12-hour format
+            function formatTime(time) {
+                let [hour, minute] = time.split(":");
+                let period = "AM";
+                hour = parseInt(hour);
+                if (hour >= 12) {
+                    period = "PM";
+                    if (hour > 12) hour -= 12;
+                } else if (hour === 0) {
+                    hour = 12;
+                }
+                return `${hour}:${minute} ${period}`;
+            }
+
+            // Add event form submission
+            document.getElementById("eventForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const eventName = document.getElementById("event_name").value;
+                const eventDay = document.getElementById("event_day").value;
+                const eventStartTime = document.getElementById("event_start_time").value;
+                const eventEndTime = document.getElementById("event_end_time").value;
+
+                try {
+                    const addResponse = await fetch('http://localhost:3000/events', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            event_name: eventName,
+                            event_day: eventDay,
+                            event_start_time: eventStartTime, // Correct field name
+                            event_end_time: eventEndTime
+                        })
+                    });
+
+                    if (addResponse.ok) {
+                        alert('Event added successfully');
+                        fetchAndRenderEvents(); // Refresh the events table
+                    } else {
+                        const errorText = await addResponse.text();
+                        alert('Error adding event: ' + errorText);
+                    }
+                } catch (error) {
+                    console.error('Error adding event:', error);
+                }
+
+                // Reset the form
+                document.getElementById("eventForm").reset();
+            });
+
+            // Fetch and render events on page load
+            fetchAndRenderEvents();
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <span id="userDisplay" style="position: absolute; top: 10px; right: 20px; font-weight: bold;"></span>
+    </div>
+    
+    <div class="container">
+        <h2>Add Event</h2>
+        <form id="eventForm">
+            <label for="event_name">Event Name:</label>
+            <input type="text" id="event_name" name="event_name" required>
+            
+            <label for="event_day">Day:</label>
+            <select id="event_day" name="event_day" required>
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+            </select>
+            
+            <label for="event_start_time">Start Time:</label>
+            <input type="time" id="event_start_time" name="event_start_time" required>
+            
+            <label for="event_end_time">End Time:</label>
+            <input type="time" id="event_end_time" name="event_end_time" required>
+            
+            <button type="submit">Add Event</button>
+        </form>
+        
+        <h2>Events Schedule</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Sunday</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Saturday</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

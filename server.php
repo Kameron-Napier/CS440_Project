@@ -1,6 +1,6 @@
 <?php
 // establish connection to database
-$conn = new mysqli("localhost", "root", "", "CS440");
+$conn = new mysqli("cs440-db.cdio8ucck53z.us-east-1.rds.amazonaws.com", "admin", "CS440-DB", "CS440");
 
 // check if connection was successful
 if ($conn->connect_error) {

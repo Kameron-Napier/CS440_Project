@@ -2,7 +2,7 @@ DROP DATABASE CS440;
 
 CREATE DATABASE CS440;
 
-use CS440;
+USE CS440;
 
 CREATE TABLE events_schedule (
     event_name VARCHAR(35) NOT NULL,
@@ -13,12 +13,13 @@ CREATE TABLE events_schedule (
 );
 
 CREATE TABLE Login (
-	username varchar(20),
-    pass varchar(20)
+    username VARCHAR(20) PRIMARY KEY,
+    password_hash CHAR(60) NOT NULL -- For bcrypt hashes
 );
 
+-- Note: When inserting users, use bcrypt to hash passwords first
 #for testing
 #insert into Login(username, pass) VALUES ("nmg295", "password1234");
 
 #select * from events_schedule;
-#select * from Login;
+select * from Login;

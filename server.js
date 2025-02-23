@@ -139,6 +139,7 @@ app.get('/events', authenticateToken, (req, res) => {
   });
 });
 
+// server.js (changes in POST /events endpoint)
 app.post('/events',
   authenticateToken,
   body('event_name').trim().escape().isLength({ max: 35 }),
@@ -149,7 +150,11 @@ app.post('/events',
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const event = req.body;
+    const event = {
+      ...req.body,
+      username: req.user.username 
+    };
+
     connection.query(
       'INSERT INTO events_schedule SET ?',
       event,

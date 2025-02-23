@@ -152,7 +152,7 @@ app.post('/events',
 
     const event = {
       ...req.body,
-      username: req.user.username // Add username from JWT
+      username: req.user.username 
     };
 
     connection.query(

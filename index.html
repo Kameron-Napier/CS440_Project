@@ -3,24 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Event</title>
+    <title>Event Scheduler</title>
     <link rel="stylesheet" href="addEvents.css">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-
-            const username = localStorage.getItem("loggedInUser");
-            if (username) {
-                document.getElementById("userDisplay").innerText = username;
+            // Check for JWT token
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
             }
+
+            // Decode token to get username
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById("userDisplay").innerText = payload.username;
 
             const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-            // Fetch events from the backend and render the table
+            // Fetch and render events with authentication
             async function fetchAndRenderEvents() {
                 try {
-                    const response = await fetch('http://localhost:3000/events');
-                    const events = await response.json();
+                    const response = await fetch('http://localhost:3000/events', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
+                    if (response.status === 401) {
+                        localStorage.removeItem('jwtToken');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    const events = await response.json();
                     const table = document.getElementById("eventsTableBody");
                     table.innerHTML = "";
 
@@ -76,53 +91,65 @@
             document.getElementById("eventForm").addEventListener("submit", async function (e) {
                 e.preventDefault();
 
-                const eventName = document.getElementById("event_name").value;
-                const eventDay = document.getElementById("event_day").value;
-                const eventStartTime = document.getElementById("event_start_time").value;
-                const eventEndTime = document.getElementById("event_end_time").value;
+                const eventData = {
+                    event_name: document.getElementById("event_name").value,
+                    event_day: document.getElementById("event_day").value,
+                    event_start_time: document.getElementById("event_start_time").value,
+                    event_end_time: document.getElementById("event_end_time").value
+                };
 
                 try {
                     const addResponse = await fetch('http://localhost:3000/events', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            event_name: eventName,
-                            event_day: eventDay,
-                            event_start_time: eventStartTime, // Correct field name
-                            event_end_time: eventEndTime
-                        })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(eventData)
                     });
+
+                    if (addResponse.status === 401) {
+                        localStorage.removeItem('jwtToken');
+                        window.location.href = 'login.html';
+                        return;
+                    }
 
                     if (addResponse.ok) {
                         alert('Event added successfully');
-                        fetchAndRenderEvents(); // Refresh the events table
+                        fetchAndRenderEvents();
                     } else {
                         const errorText = await addResponse.text();
                         alert('Error adding event: ' + errorText);
                     }
                 } catch (error) {
                     console.error('Error adding event:', error);
+                    alert('Failed to connect to server');
                 }
 
-                // Reset the form
                 document.getElementById("eventForm").reset();
             });
 
-            // Fetch and render events on page load
+            // Initial fetch
             fetchAndRenderEvents();
         });
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = 'login.html';
+        }
     </script>
 </head>
 <body>
     <div class="header">
-        <span id="userDisplay" style="position: absolute; top: 10px; right: 20px; font-weight: bold;"></span>
+        <span id="userDisplay" style="position: absolute; top: 10px; right: 120px; font-weight: bold;"></span>
+        <button onclick="logout()" style="position: absolute; top: 10px; right: 20px;">Logout</button>
     </div>
     
     <div class="container">
         <h2>Add Event</h2>
         <form id="eventForm">
             <label for="event_name">Event Name:</label>
-            <input type="text" id="event_name" name="event_name" required>
+            <input type="text" id="event_name" name="event_name" required maxlength="35">
             
             <label for="event_day">Day:</label>
             <select id="event_day" name="event_day" required>

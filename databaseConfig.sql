@@ -22,4 +22,4 @@ CREATE TABLE Login (
 #insert into Login(username, pass) VALUES ("nmg295", "password1234");
 
 #select * from events_schedule;
-#select * from Login;
+select * from Login;

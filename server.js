@@ -11,16 +11,16 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Database connection using environment variables
+// Database connection
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  port: process.env.DB_PORT || 3306
 });
 
-// JWT authentication middleware
+// JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -34,13 +34,69 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Connect to database
 connection.connect((err) => {
-  if (err) return console.error('Error connecting:', err);
+  if (err) {
+    console.error('Error connecting to database:', err);
+    return;
+  }
   console.log('Connected to database');
 });
 
-// Login with validation and bcrypt
-app.post('/login', 
+// Registration endpoint
+app.post('/register',
+  body('username')
+    .trim()
+    .escape()
+    .isLength({ min: 3, max: 20 })
+    .withMessage('Username must be 3-20 characters'),
+  body('password')
+    .trim()
+    .escape()
+    .isStrongPassword({
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 0
+    })
+    .withMessage('Password must contain 8+ chars with 1 uppercase and 1 number'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { username, password } = req.body;
+    const saltRounds = 10;
+
+    try {
+      const [existing] = await new Promise((resolve, reject) => {
+        connection.query(
+          'SELECT * FROM Login WHERE username = ?',
+          [username],
+          (err, results) => err ? reject(err) : resolve(results)
+        );
+      });
+
+      if (existing) return res.status(409).send('Username already exists');
+
+      const hash = await bcrypt.hash(password, saltRounds);
+      await new Promise((resolve, reject) => {
+        connection.query(
+          'INSERT INTO Login (username, password_hash) VALUES (?, ?)',
+          [username, hash],
+          (err, results) => err ? reject(err) : resolve(results)
+        );
+      });
+
+      res.status(201).send('User created successfully');
+    } catch (err) {
+      console.error('Registration error:', err);
+      res.status(500).send('Server error during registration');
+    }
+});
+
+// Login endpoint
+app.post('/login',
   body('username').trim().escape(),
   body('password').trim().escape(),
   async (req, res) => {
@@ -83,7 +139,7 @@ app.get('/events', authenticateToken, (req, res) => {
   });
 });
 
-app.post('/events', 
+app.post('/events',
   authenticateToken,
   body('event_name').trim().escape().isLength({ max: 35 }),
   body('event_day').isIn(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']),
@@ -104,6 +160,7 @@ app.post('/events',
     );
 });
 
+// Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

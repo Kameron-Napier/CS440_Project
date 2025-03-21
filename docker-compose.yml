@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # User Authentication Database
+  user-auth-db:
+    image: mysql:8.0
+    container_name: user_auth_db
+    environment:
+      MYSQL_ROOT_PASSWORD: auth_root_pass
+      MYSQL_DATABASE: user_auth
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_pass
+    volumes:
+      - ./user_auth/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - user_auth_data:/var/lib/mysql
+    networks:
+      - microservice_network
+    ports:
+      - "3306:3306"
+
+  # Event Scheduling Database
+  event-scheduling-db:
+    image: mysql:8.0
+    container_name: event_scheduling_db
+    environment:
+      MYSQL_ROOT_PASSWORD: scheduling_root_pass
+      MYSQL_DATABASE: event_scheduling
+      MYSQL_USER: scheduling_user
+      MYSQL_PASSWORD: scheduling_pass
+    volumes:
+      - ./event_scheduling/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - event_scheduling_data:/var/lib/mysql
+    networks:
+      - microservice_network
+    ports:
+      - "3307:3306"
+
+  # Event Details Database
+  event-details-db:
+    image: mysql:8.0
+    container_name: event_details_db
+    environment:
+      MYSQL_ROOT_PASSWORD: details_root_pass
+      MYSQL_DATABASE: event_details
+      MYSQL_USER: details_user
+      MYSQL_PASSWORD: details_pass
+    volumes:
+      - ./event_details/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - event_details_data:/var/lib/mysql
+    networks:
+      - microservice_network
+    ports:
+      - "3308:3306"
+
+volumes:
+  user_auth_data:
+  event_scheduling_data:
+  event_details_data:
+
+networks:
+  microservice_network:
+    driver: bridge
+
+secrets:
+  db_passwords:
+    file: ./db_secrets.env

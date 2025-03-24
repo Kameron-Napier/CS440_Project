@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Scheduler</title>
+    <link rel="stylesheet" href="addEvents.css">
+    <script>
+        // Fetch events from scheduling service
+        async function fetchAndRenderEvents() {
+            try {
+                const response = await fetch('http://localhost:3000/events', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const events = await response.json();
+                
+                // Fetch details for each event
+                const eventsWithDetails = await Promise.all(
+                    events.map(async event => {
+                        const detailsResponse = await fetch(
+                            `http://localhost:3000/details/${event.event_id}`
+                        );
+                        return {
+                            ...event,
+                            ...await detailsResponse.json()
+                        };
+                    })
+                );
+                
+                renderEvents(eventsWithDetails);
+            }
+        }
+        
+        // Add event flow
+        document.getElementById("eventForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            // 1. Create schedule
+            const scheduleResponse = await fetch('http://localhost:3000/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    user_id: localStorage.getItem('userId'),
+                    event_name: document.getElementById("event_name").value,
+                    event_day: document.getElementById("event_day").value
+                })
+            });
+            
+            const scheduleData = await scheduleResponse.json();
+            
+            // 2. Add details
+            await fetch('http://localhost:3000/details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    event_id: scheduleData.event_id,
+                    start_time: document.getElementById("event_start_time").value,
+                    end_time: document.getElementById("event_end_time").value,
+                    location: document.getElementById("event_location").value
+                })
+            });
+            
+            fetchAndRenderEvents();
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <span id="userDisplay" style="position: absolute; top: 10px; right: 120px; font-weight: bold;"></span>
+        <button onclick="logout()" style="position: absolute; top: 10px; right: 20px;">Logout</button>
+    </div>
+    
+    <div class="container">
+        <h2>Add Event</h2>
+        <form id="eventForm">
+            <label for="event_name">Event Name:</label>
+            <input type="text" id="event_name" name="event_name" required maxlength="35">
+
+            <label for="event_location">Location:</label>
+            <input type="text" id="event_location" name="event_location" required>
+            
+            <label for="event_day">Day:</label>
+            <select id="event_day" name="event_day" required>
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+            </select>
+            
+            <label for="event_start_time">Start Time:</label>
+            <input type="time" id="event_start_time" name="event_start_time" required>
+            
+            <label for="event_end_time">End Time:</label>
+            <input type="time" id="event_end_time" name="event_end_time" required>
+            
+            <button type="submit">Add Event</button>
+        </form>
+        
+        <h2>Events Schedule</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Sunday</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Saturday</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

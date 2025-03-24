@@ -1,0 +1,109 @@
+#version: '3.8'
+
+services:
+  frontend:
+    container_name: frontend
+    image: nginx:alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html  # Directory containing your HTML/CSS/JS files
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf 
+    ports:
+      - "8080:80"
+     #Add this to ensure proper file serving
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+    depends_on:
+      - api-gateway
+  api-gateway:
+    container_name: api-gateway
+    env_file:
+      - .env
+    build: ./api-gateway
+    ports: ["80:3000"]
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - user-auth
+      - event-scheduling
+      - event-details
+
+  user-auth:
+    container_name: user-auth
+    env_file:
+      - .env
+    build: ./user-auth
+    environment:
+      DB_HOST: auth-db
+      DB_USER: auth_user
+      DB_PASS: auth_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - auth-db
+
+  event-scheduling:
+    container_name: event-scheduling
+    env_file:
+      - .env
+    build: ./event-scheduling
+    environment:
+      DB_HOST: scheduling-db
+      DB_USER: scheduling_user
+      DB_PASS: scheduling_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - scheduling-db
+
+  event-details:
+    container_name: event-details
+    env_file:
+      - .env
+    build: ./event-details
+    environment:
+      DB_HOST: details-db
+      DB_USER: details_user
+      DB_PASS: details_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - details-db
+
+  # Databases (same as previous answer)
+  auth-db: # ...
+    command: [
+      "--bind-address=0.0.0.0",
+      "--default-authentication-plugin=mysql_native_password",
+      "--skip-name-resolve" ]
+    container_name: auth-db
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_pass
+    volumes:
+      - ./auth-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - auth_data:/var/lib/mysql
+  scheduling-db: # ...
+    container_name: scheduling_db
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: scheduling_db
+      MYSQL_USER: scheduling_user
+      MYSQL_PASSWORD: scheduling_pass
+    volumes:
+      - scheduling_data:/var/lib/mysql
+  details-db: # ...
+    container_name: details_db
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: details_db
+      MYSQL_USER: details_user
+      MYSQL_PASSWORD: details_pass
+    volumes:
+      - details_data:/var/lib/mysql
+
+volumes: # ...
+  auth_data:
+  scheduling_data:
+  details_data:

@@ -1,3 +1,7 @@
+CREATE USER 'auth_user'@'%' IDENTIFIED BY 'auth_pass';
+GRANT ALL PRIVILEGES ON user_auth.* TO 'auth_user'@'%';
+FLUSH PRIVILEGES;
+
 CREATE DATABASE IF NOT EXISTS user_auth;
 USE user_auth;
 

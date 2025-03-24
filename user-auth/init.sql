@@ -6,3 +6,5 @@ CREATE TABLE users (
     username VARCHAR(20) UNIQUE NOT NULL,
     password_hash CHAR(60) NOT NULL
 );
+
+select * from users;

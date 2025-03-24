@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html  # Directory containing your HTML/CSS/JS files
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf 
+    ports:
+      - "8080:80"
+     #Add this to ensure proper file serving
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+    depends_on:
+      - api-gateway
   api-gateway:
     build: ./api-gateway
     ports: ["80:3000"]

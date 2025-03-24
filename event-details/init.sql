@@ -7,3 +7,5 @@ CREATE TABLE event_details (
     end_time TIME NOT NULL,
     location VARCHAR(255) NOT NULL
 );
+
+#select * from event_details;

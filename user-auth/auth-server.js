@@ -13,7 +13,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: 'user_auth',
+  database: 'auth_db',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -22,7 +22,7 @@ const pool = mysql.createPool({
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:5500', // Your frontend origin
+  origin: 'http://localhost:5500',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

@@ -69,25 +69,19 @@ services:
   # Databases (same as previous answer)
   auth-db: # ...
     command: [
+      "--bind-address=0.0.0.0",
       "--default-authentication-plugin=mysql_native_password",
-      "--skip-name-resolve",
-      "--character-set-server=utf8mb4",
-      "--collation-server=utf8mb4_unicode_ci" ]
+      "--skip-name-resolve" ]
     container_name: auth-db
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: user_auth
+      MYSQL_DATABASE: auth_db
       MYSQL_USER: auth_user
       MYSQL_PASSWORD: auth_pass
     volumes:
       - ./auth-db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - auth_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
   scheduling-db: # ...
     container_name: scheduling_db
     image: mysql:8.0

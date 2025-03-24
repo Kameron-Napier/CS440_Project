@@ -1,8 +1,9 @@
-CREATE DATABASE IF NOT EXISTS user_auth;
-USE user_auth;
+-- auth-db/init.sql
+CREATE DATABASE IF NOT EXISTS auth_db;
+USE auth_db;
 
 CREATE USER 'auth_user'@'%' IDENTIFIED BY 'auth_pass';
-GRANT ALL PRIVILEGES ON user_auth.* TO 'auth_user'@'%';
+GRANT ALL PRIVILEGES ON auth_db.* TO 'auth_user'@'%';
 FLUSH PRIVILEGES;
 
 CREATE TABLE users (
@@ -11,4 +12,4 @@ CREATE TABLE users (
     password_hash CHAR(60) NOT NULL
 );
 
-select * from users;
+-- Remove the SELECT statement here

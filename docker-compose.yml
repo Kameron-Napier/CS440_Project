@@ -1,66 +1,82 @@
 version: '3.8'
 
 services:
-  # User Authentication Database
-  user-auth-db:
-    image: mysql:8.0
-    container_name: user_auth_db
+  api-gateway:
+    build: ./api-gateway
+    ports: ["80:3000"]
     environment:
-      MYSQL_ROOT_PASSWORD: auth_root_pass
-      MYSQL_DATABASE: user_auth
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - user-auth
+      - event-scheduling
+      - event-details
+
+  user-auth:
+    env_file:
+      - ./user-auth/.env
+    build: ./user-auth
+    environment:
+      DB_HOST: auth-db
+      DB_USER: auth_user
+      DB_PASS: auth_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - auth-db
+
+  event-scheduling:
+    env_file:
+      - ./event-scheduling/.env
+    build: ./event-scheduling
+    environment:
+      DB_HOST: scheduling-db
+      DB_USER: scheduling_user
+      DB_PASS: scheduling_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - scheduling-db
+
+  event-details:
+    env_file:
+      - ./event-details/.env
+    build: ./event-details
+    environment:
+      DB_HOST: details-db
+      DB_USER: details_user
+      DB_PASS: details_pass
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - details-db
+
+  # Databases (same as previous answer)
+  auth-db: # ...
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: auth_db
       MYSQL_USER: auth_user
       MYSQL_PASSWORD: auth_pass
     volumes:
-      - ./user_auth/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - user_auth_data:/var/lib/mysql
-    networks:
-      - microservice_network
-    ports:
-      - "3306:3306"
-
-  # Event Scheduling Database
-  event-scheduling-db:
+      - auth_data:/var/lib/mysql
+  scheduling-db: # ...
     image: mysql:8.0
-    container_name: event_scheduling_db
     environment:
-      MYSQL_ROOT_PASSWORD: scheduling_root_pass
-      MYSQL_DATABASE: event_scheduling
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: scheduling_db
       MYSQL_USER: scheduling_user
       MYSQL_PASSWORD: scheduling_pass
     volumes:
-      - ./event_scheduling/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - event_scheduling_data:/var/lib/mysql
-    networks:
-      - microservice_network
-    ports:
-      - "3307:3306"
-
-  # Event Details Database
-  event-details-db:
+      - scheduling_data:/var/lib/mysql
+  details-db: # ...
     image: mysql:8.0
-    container_name: event_details_db
     environment:
-      MYSQL_ROOT_PASSWORD: details_root_pass
-      MYSQL_DATABASE: event_details
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: details_db
       MYSQL_USER: details_user
       MYSQL_PASSWORD: details_pass
     volumes:
-      - ./event_details/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - event_details_data:/var/lib/mysql
-    networks:
-      - microservice_network
-    ports:
-      - "3308:3306"
+      - details_data:/var/lib/mysql
 
-volumes:
-  user_auth_data:
-  event_scheduling_data:
-  event_details_data:
-
-networks:
-  microservice_network:
-    driver: bridge
-
-secrets:
-  db_passwords:
-    file: ./db_secrets.env
+volumes: # ...
+  auth_data:
+  scheduling_data:
+  details_data:

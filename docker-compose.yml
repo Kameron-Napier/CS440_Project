@@ -1,7 +1,8 @@
-version: '3.8'
+#version: '3.8'
 
 services:
   frontend:
+    container_name: frontend
     image: nginx:alpine
     volumes:
       - ./frontend:/usr/share/nginx/html  # Directory containing your HTML/CSS/JS files
@@ -14,6 +15,9 @@ services:
     depends_on:
       - api-gateway
   api-gateway:
+    container_name: api-gateway
+    env_file:
+      - .env
     build: ./api-gateway
     ports: ["80:3000"]
     environment:
@@ -24,8 +28,9 @@ services:
       - event-details
 
   user-auth:
+    container_name: user-auth
     env_file:
-      - ./user-auth/.env
+      - .env
     build: ./user-auth
     environment:
       DB_HOST: auth-db
@@ -36,8 +41,9 @@ services:
       - auth-db
 
   event-scheduling:
+    container_name: event-scheduling
     env_file:
-      - ./event-scheduling/.env
+      - .env
     build: ./event-scheduling
     environment:
       DB_HOST: scheduling-db
@@ -48,8 +54,9 @@ services:
       - scheduling-db
 
   event-details:
+    container_name: event-details
     env_file:
-      - ./event-details/.env
+      - .env
     build: ./event-details
     environment:
       DB_HOST: details-db
@@ -61,15 +68,28 @@ services:
 
   # Databases (same as previous answer)
   auth-db: # ...
+    command: [
+      "--default-authentication-plugin=mysql_native_password",
+      "--skip-name-resolve",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci" ]
+    container_name: auth-db
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: auth_db
+      MYSQL_DATABASE: user_auth
       MYSQL_USER: auth_user
       MYSQL_PASSWORD: auth_pass
     volumes:
+      - ./auth-db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - auth_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
   scheduling-db: # ...
+    container_name: scheduling_db
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
@@ -79,6 +99,7 @@ services:
     volumes:
       - scheduling_data:/var/lib/mysql
   details-db: # ...
+    container_name: details_db
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass

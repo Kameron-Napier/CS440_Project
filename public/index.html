@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Scheduler</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Load auth.js first without type="module" -->
+    <script src="/js/auth.js"></script>
+    <!-- Load events.js after auth.js -->
+    <script src="/js/events.js"></script>
+</head>
+<body>
+    <div class="header">
+        <span id="userDisplay" style="margin-right: 20px; font-weight: bold;"></span>
+        <button id="logoutBtn">Logout</button>
+    </div>
+    
+    <div class="container">
+        <h1>Event Scheduler</h1>
+        
+        <section id="add-event">
+            <h2>Add Event</h2>
+            <form id="eventForm">
+                <label for="event_name">Event Name:</label>
+                <input type="text" id="event_name" name="event_name" required maxlength="35">
+                
+                <label for="event_day">Day:</label>
+                <select id="event_day" name="event_day" required>
+                    <option value="Sunday">Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+                
+                <label for="event_start_time">Start Time:</label>
+                <input type="time" id="event_start_time" name="event_start_time" required>
+                
+                <label for="event_end_time">End Time:</label>
+                <input type="time" id="event_end_time" name="event_end_time" required>
+                
+                <button type="submit">Add Event</button>
+            </form>
+        </section>
+        
+        <section id="schedule">
+            <h2>Weekly Schedule</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sunday</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                    <!-- Events will be dynamically populated here -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>

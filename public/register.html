@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Event Scheduler</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Load auth.js without type="module" -->
+    <script src="/js/auth.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Event Scheduler</h1>
+        <h2>Create Account</h2>
+        <form id="registrationForm">
+            <label for="username">Username (3-20 characters):</label>
+            <input type="text" id="username" name="username" required minlength="3" maxlength="20">
+            
+            <label for="password">Password (8+ characters with 1 uppercase and 1 number):</label>
+            <input type="password" id="password" name="password" required minlength="8">
+            
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+</body>
+</html>

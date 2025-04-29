@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Scheduler</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="header">
+    <span id="userDisplay"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <h2>Add Event</h2>
+    <form id="eventForm">
+      <label for="event_name">Event Name:</label>
+      <input type="text" id="event_name" name="event_name" required maxlength="35">
+
+      <label for="event_day">Day:</label>
+      <select id="event_day" name="event_day" required>
+        <option>Sunday</option><option>Monday</option><option>Tuesday</option>
+        <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+      </select>
+
+      <label for="event_start_time">Start Time:</label>
+      <input type="time" id="event_start_time" name="event_start_time" required>
+
+      <label for="event_end_time">End Time:</label>
+      <input type="time" id="event_end_time" name="event_end_time" required>
+
+      <button type="submit">Add Event</button>
+    </form>
+
+    <h2>Events Schedule</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Sunday</th><th>Monday</th><th>Tuesday</th>
+          <th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th>
+        </tr>
+      </thead>
+      <tbody id="eventsTableBody"></tbody>
+    </table>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>
